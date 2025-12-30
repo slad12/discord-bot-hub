@@ -53,7 +53,7 @@ const Store = () => {
         <main className="container mx-auto px-4 pb-24 pt-24">
           <div className="mb-12">
             <h1 className="mb-4 text-3xl font-bold text-foreground md:text-4xl">
-              Bem-vindo, {user.user_metadata?.full_name?.split(' ')[0] || 'usuário'}!
+              Bem-vindo, {user.global_name || user.username}!
             </h1>
             <p className="text-muted-foreground">
               Explore nossa coleção completa de bots premium para Discord.

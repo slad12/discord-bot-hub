@@ -2,12 +2,12 @@ import { Button } from '@/components/ui/button';
 import { DiscordIcon } from '@/components/icons/DiscordIcon';
 import { LogOut, Bot } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { signInWithDiscord, signOut } from '@/lib/auth';
+import { signInWithDiscord } from '@/lib/auth';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 export const Header = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -18,13 +18,9 @@ export const Header = () => {
   };
 
   const handleLogout = async () => {
-    const { error } = await signOut();
-    if (error) {
-      toast.error('Erro ao fazer logout');
-    } else {
-      toast.success('Logout realizado com sucesso');
-      navigate('/');
-    }
+    await signOut();
+    toast.success('Logout realizado com sucesso');
+    navigate('/');
   };
 
   return (
@@ -57,15 +53,13 @@ export const Header = () => {
           ) : user ? (
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-2">
-                {user.user_metadata?.avatar_url && (
-                  <img
-                    src={user.user_metadata.avatar_url}
-                    alt="Avatar"
-                    className="h-8 w-8 rounded-full border-2 border-primary/50"
-                  />
-                )}
+                <img
+                  src={user.avatar}
+                  alt="Avatar"
+                  className="h-8 w-8 rounded-full border-2 border-primary/50"
+                />
                 <span className="hidden sm:block text-sm font-medium text-foreground">
-                  {user.user_metadata?.full_name || user.email}
+                  {user.global_name || user.username}
                 </span>
               </div>
               <Button

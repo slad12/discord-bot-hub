@@ -1,31 +1,37 @@
 import { useState, useEffect } from 'react';
-import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '@/integrations/supabase/client';
+import { getStoredUser, signOut as authSignOut, DiscordUser } from '@/lib/auth';
 
 export const useAuth = () => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<DiscordUser | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        setLoading(false);
+    // Check for stored user on mount
+    const storedUser = getStoredUser();
+    setUser(storedUser);
+    setLoading(false);
+
+    // Listen for storage changes (for multi-tab sync)
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'discord_user') {
+        const newUser = e.newValue ? JSON.parse(e.newValue) : null;
+        setUser(newUser);
       }
-    );
+    };
 
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
-  return { user, session, loading };
+  const signOut = async () => {
+    await authSignOut();
+    setUser(null);
+  };
+
+  const refreshUser = () => {
+    const storedUser = getStoredUser();
+    setUser(storedUser);
+  };
+
+  return { user, loading, signOut, refreshUser };
 };
